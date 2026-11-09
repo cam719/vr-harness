@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vrcore"
+version = "0.1.0"
+description = "Target-agnostic vulnerability-research harness engine: composable Frame builder, run/node/record/trial store with N-of-N gating, independent oracles, and an allowlist-guarded injector."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+include = ["vrcore*"]

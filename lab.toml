@@ -1,0 +1,31 @@
+# vrcore config for the GStreamer parsing-PoC reproduction.
+[lab]
+# Only relevant for a network PoC; file PoCs are local parsing. Loopback only.
+allowed_nets = ["127.0.0.0/8"]
+allowed_hosts = ["127.0.0.1", "localhost"]
+# For named lab hosts you may instead add an optional [hosts] table (name = "ip");
+# every value there is allowlisted. The injector refuses any other destination.
+min_interval = 0.0
+
+[target]
+build = "gstreamer <version> (ASAN+UBSan build)"
+
+# Your PoC / reach-template corpus lives OUTSIDE this repo (keep it out of git).
+poc_dir = "./pocs"
+# Known-good file in poc_dir that must parse clean (the control case).
+control = "normal.mkv"
+
+# The one GStreamer-specific knob. {input} is replaced with the crafted file path.
+# No shell is used, so '!' and spaces are fine as plain args. Point this at an
+# AddressSanitizer build of GStreamer. Example using an uninstalled meson build's
+# gst-env wrapper (edit the two /path/to/gstreamer paths to your build):
+#   python3 /path/to/gstreamer/gst-env.py --builddir /path/to/gstreamer/build-asan \
+#       gst-launch-1.0 -q filesrc location={input} ! decodebin ! fakesink
+# Or gst-discoverer-1.0, or any ASAN binary that parses {input} and prints to stderr.
+runner = "python3 /path/to/gstreamer/gst-env.py --builddir /path/to/gstreamer/build-asan gst-launch-1.0 -q filesrc location={input} ! decodebin ! fakesink"
+
+# PoC files to replay with `reproduce` (names are examples -- fill from your corpus).
+# [[target.pocs]]
+# file = "sample01.mp4"
+# element = "demux"
+# desc = "example parser fault"

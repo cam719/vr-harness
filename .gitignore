@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# run data and private corpora never go in git
+runs/*
+!runs/.gitkeep
+pocs/
+
+# crash inputs / media samples (keep your corpus private)
+*.media
+*.mp4
+*.mkv
+*.mov
+*.wav
+*.avi
+*.bin
