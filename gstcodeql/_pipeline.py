@@ -22,13 +22,15 @@ def load_cfg(lab_toml) -> dict:
 
 def fire(store, run_id: str, rec_id: str, data: bytes, expect_fault: bool, label: str,
          *, policy, runner_cmd: str, transport_factory=GstRunner,
-         host: str = "127.0.0.1", timeout: float = 90) -> dict:
+         host: str = "127.0.0.1", timeout: float = 90, extra_oracles=()) -> dict:
     """Run one trial: start it, inject `data` under the fault oracle, finish it.
+    `extra_oracles` are judged alongside it (the trial PASSes only if all do).
     Returns the fault oracle's result dict ({'verdict', 'detail'})."""
     trial = store.start_trial(run_id, rec_id)
     adir = store.artifact_dir(run_id, trial.id)
     inj = Injector(transport_factory(runner_cmd), policy, host, artifact_dir=adir)
-    res = inj.inject(data, [GstFaultOracle(expect_fault=expect_fault)], timeout=timeout, label=label)
+    oracles = [GstFaultOracle(expect_fault=expect_fault), *extra_oracles]
+    res = inj.inject(data, oracles, timeout=timeout, label=label)
     store.finish_trial(run_id, trial, res.oracles,
                        artifacts=[str(p) for p in adir.glob("*")],
                        notes=res.oracles.get(ORACLE, {}).get("detail", "")[:200])

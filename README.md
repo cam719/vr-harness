@@ -66,6 +66,26 @@ The two shipped entries (`example_count_field`, `example_field_splice`) are
 **generic skeletons** — replace the fictional box/field/element/template with your
 own finding. This repo intentionally ships no real target details or crash inputs.
 
+## Verifying one lead (`gstcodeql verify`)
+Turns a single lead into a harness verdict instead of a judgement call:
+```
+python -m gstcodeql verify --control good.bin --mutant bad.bin --element <demuxer> \
+    --site 'my_parse_fn|my-file\.c' --variant edge.bin=fault --variant edge-1.bin=clean \
+    --gst-src /path/to/gstreamer --builddir /path/to/gstreamer/build-asan --run-dir ./runs
+```
+1. records the byte diff between control and mutant;
+2. the control must parse clean N/N under ASAN, or the mutant is never fired;
+3. the mutant is fired N times, judged by `GstFaultOracle` (hard memory-safety fault,
+   never a GLib critical or a UBSan alignment report) and, with `--site`, by
+   `GstSiteOracle` (a fault elsewhere is a *different* bug, not a confirmation);
+4. variants record their own expected outcome as causality evidence;
+5. the verdict comes from the `RunStore` record statuses: **CONFIRMED** (exit 0),
+   **REFUTED** (1) or **INCONCLUSIVE** (2), saved to `<run>/verdict.json`.
+
+Each run gets its own `GST_REGISTRY` with `GST_REGISTRY_FORK=no`, so parallel verify
+runs don't share a registry cache. `gstcodeql/ubsan.supp` suppresses only UBSan
+alignment reports from `gstutils.h` (GStreamer's intentional unaligned fast paths).
+
 ## How a fault is judged
 The oracle counts only a **memory-safety** fault — AddressSanitizer / UBSan / a
 fatal signal. A `GLib-CRITICAL`, assertion, or glib warning (which GStreamer

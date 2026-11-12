@@ -1,0 +1,4 @@
+# UBSan suppressions for GStreamer runs (see gstcodeql/oracle.py MISALIGNED).
+# GST_READ_*/GST_WRITE_* fast paths in gstutils.h do unaligned access on purpose
+# on x86; UBSan reports each one. Alignment only -- every other check stays on.
+alignment:gstutils.h
